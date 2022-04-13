@@ -1,8 +1,12 @@
+using api_first_crud.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class ApplicationDbContext : DbContext
 {
     public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Category { get; set; }
+    
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {}
 
     //Applying FluentAPI for columns properties
     protected override void OnModelCreating(ModelBuilder builder)
@@ -19,13 +23,7 @@ public class ApplicationDbContext : DbContext
             .Property(p => p.Description)
             .HasMaxLength(500)
             .IsRequired(false);
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        //String Connection
-        options.UseSqlServer(
-            "Server=localhost;Database=Products;User Id=sa;Password=Aaaa1111;MultipleActiveResultSets=true;Encrypt=YES;TrustServerCertificate=YES"
-        );
+        builder.Entity<Category>()
+            .ToTable("Categories");
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<ApplicationDbContext>(); //Serviço: Banco de Dados
+builder.Services.AddSqlServer<ApplicationDbContext>(builder.Configuration["Database:SqlServer"]); //Serviço: Banco de Dados
 
 var app = builder.Build();
 
@@ -18,9 +18,19 @@ app.MapGet("/products/{code}", ([FromRoute] string code) => {
     
 });
 
-app.MapPost("/products", (Product product) => {
-    ProductRepository.Add(product);
-    return Results.Created("/products/" + product.Code, product);
+app.MapPost("/products", (ProductRequest productRequest, ApplicationDbContext context) => {
+    var category = context.Category.Where(
+        c => c.Id == productRequest.CategoryId
+    ).First();
+    var product = new Product {
+        Code = productRequest.Code,
+        Name = productRequest.Name,
+        Description = productRequest.Description,
+        Category = category
+    };
+    context.Products.Add(product);
+    context.SaveChanges();
+    return Results.Created($"/products/{product.Id}", product.Id);
 });
 
 app.MapPut("products", (Product product) => {
